@@ -1,0 +1,54 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta charset="utf-8" />
+    <script src="http://code.jquery.com/jquery-2.0.0.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/css/bootstrap.min.css" integrity="sha384-Zug+QiDoJOrZ5t4lssLdxGhVrurbmBWopoEl+M6BdEfwnCJZtKxi1KgxUyJq13dy" crossorigin="anonymous">
+</head>
+<body>
+    <form>
+        <div>
+            <h2>Produtos</h2>
+            <ul id="produtos" />
+        </div>
+        <div>
+            <h2>Search by ID</h2>
+            <input type="text" id="prodId" size="5" width="100%" />
+            <input type="button" value="Search" onclick="find();" />
+            <p id="produto" />
+        </div>
+    </form>
+</body>
+</html>
+
+<script>
+    var uri = 'api/produtos';
+
+    $(document).ready(function () {
+        // Send an AJAX request
+        $.getJSON(uri)
+            .done(function (data) {
+                // On success, 'data' contains a list of products.
+                $.each(data, function (key, item) {
+                    // Add a list item for the product.
+                    $('<li>', { text: formatItem(item) }).appendTo($('#produtos'));
+                });
+            });
+    });
+
+    function formatItem(item) {
+        return item.Nome + ': $' + item.Preco;
+    }
+
+    function find() {
+        var id = $('#prodId').val();
+        $.getJSON(uri + '/' + id)
+            .done(function (data) {
+                $('#produto').text(formatItem(data));
+            })
+            .fail(function (jqXHR, textStatus, err) {
+                $('#produto').text('Error: ' + err);
+            });
+    }
+</script>

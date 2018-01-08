@@ -1,0 +1,149 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Fortes - Desafio técnico com Web Api - PSA</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+    <script src="Scripts/jquery-1.10.2.min.js"></script>
+    <script src="Scripts/jquery.signalR-2.2.2.min.js"></script>
+    <script src="/signalr/hubs"></script>
+</head>
+<body>
+    <form>
+        <div class="container">
+
+            <div> <h1>Desafio técnico</h1></div>
+            <br />
+            <div style="position:relative;">
+                <a class='btn btn-primary' href='javascript:;'>
+                    Escolher Arquivo Canguru...
+                    <input id="uploadFileCanguru" type="file" style='position:absolute;z-index:2;top:0;left:0;filter: alpha(opacity=0);-ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=0)";opacity:0;background-color:transparent;color:transparent;' name="file_canguru" size="40">
+                </a>
+                &nbsp;
+                <span class='panel panel-default' id="file-canguru"></span>
+                <span class='label label-info'></span>
+                <div>
+                    <ul id="retornoCanguru" />
+                </div>
+            </div>
+            <br />
+            <div style="position:relative;">
+                <a class='btn btn-primary' href='javascript:;'>
+                    Escolher Arquivo Min-Max​ ​Soma...
+                    <input id="uploadFileMinMax" type="file" style='position:absolute;z-index:2;top:0;left:0;filter: alpha(opacity=0);-ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=0)";opacity:0;background-color:transparent;color:transparent;' name="file_minMax" size="40">
+                </a>
+                &nbsp;
+                <span class='panel panel-default' id="file-min-max"></span>
+                <span class='label label-info'></span>
+                <div>
+                    <ul id="retornoMinMax" />
+                </div>
+            </div>
+
+            <br />
+            <div style="position:relative;">
+                <a class='btn btn-primary' href='javascript:;'>
+                    Escolher Arquivo Quase Ordenado...
+                    <input id="uploadFileOrdenado" type="file" style='position:absolute;z-index:2;top:0;left:0;filter: alpha(opacity=0);-ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=0)";opacity:0;background-color:transparent;color:transparent;' name="file_ordenado" size="40">
+                </a>
+                &nbsp;
+                <span class='panel panel-default' id="file-ordenado"></span>
+                <span class='label label-info'></span>
+                <div>
+                    <ul id="retornoOrdenado" />
+                </div>
+            </div>
+            <div id="target" class="display-label">
+                <ul></ul>
+            </div>
+        </div>
+    </form>
+</body>
+</html>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $('#uploadFileCanguru').on('change', function () {
+
+            upLoad($(this).val(), 'FileCanguru', '#uploadFileCanguru', '#file-canguru', '#retornoCanguru');
+        });
+    });
+
+    $(document).ready(function () {
+
+        $('#uploadFileMinMax').on('change', function () {
+
+            upLoad($(this).val(), 'FileMinMax', '#uploadFileMinMax', '#file-min-max', '#retornoMinMax');
+        });
+    });
+
+    $(document).ready(function () {
+
+        $('#uploadFileOrdenado').on('change', function () {
+
+            upLoad($(this).val(), 'FileOrdenado', '#uploadFileOrdenado', '#file-ordenado', '#retornoOrdenado');
+        });
+    });
+
+    function upLoad(nomeArquivo, nomeApi, inputArquivo, labelArquivo, labelRetorno) {
+
+        $(labelArquivo).html(nomeArquivo);
+        $(labelRetorno).html('');
+        $('#target').find('ul').html('');
+
+        var data = new FormData();
+
+        var files = $(inputArquivo).get(0).files;
+
+        // Add the uploaded image content to the form data collection
+        if (files.length > 0) {
+            data.append("UploadedImage", files[0]);
+        }
+
+
+
+        // Make Ajax request with the contentType = false, and procesDate = false
+        $.ajax({
+            type: "POST",
+            url: "/api/" + nomeApi,
+            contentType: false,
+            processData: false,
+            data: data,
+            success: function (response) {
+                $('<li>', { text: response }).appendTo($(labelRetorno));
+            },
+            error: function (error) {
+                $(inputArquivo).val("");
+
+                alert(error.responseText);
+            }
+        });
+    }
+
+    $(function () {
+
+        //function that the hub can call when it receives a notification.
+        $.connection.returnoHub.server.activate = function () {
+            $("#target")
+                .find('ul')
+                .append($("<li></li>").html(response));
+        };
+
+        $.connection.returnoHub.client.sendMessage = function (message) {
+            $("#target")
+                .find('ul')
+                .append($("<li></li>").html(message));
+        };
+
+        window.notifyApp = {
+            hubConnector: $.connection.hub.start()  //start the connection and store object returned globally for access in child views
+        };
+
+    });
+
+</script>
